@@ -11,7 +11,17 @@ class acortaURLs(webapp.webApp):
         return request.split()
 
     def process(self, parsedRequest):
-        print(parsedREquest);
+        print(parsedRequest);
+
+        if parsedRequest[0] == GET:
+            respuesta = "200 OK", "<html><body>"
+                        + '<form method="POST" action="">'
+                        + 'URL: <input type="text" name="Url"><br>'
+                        + '<input type="submit" value="Enviar">'
+                        + "</form><body></html>"
+                        
+        elif parsedRequest[0] == POST:
+
 
 
 if __name__ == "__main__":
