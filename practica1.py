@@ -3,7 +3,7 @@
 import webapp
 import csv
 import os
-import urllib
+import urllib.parse
 
 class acortaURLs(webapp.webApp):
 
@@ -11,7 +11,7 @@ class acortaURLs(webapp.webApp):
     urlsAcortadas = {}
     contador = -1
 
-    def diccAcsv(self, fich):
+    def diccAcsv(self, diccionario):
         try:
             fd = open("urls.csv", "w")
             escribir = csv.writer(fd)
@@ -21,20 +21,24 @@ class acortaURLs(webapp.webApp):
                 escribir.writerow([key] + [valor])
         except FileNotFoundError:
             print("Imposible abrir el diccionario")
+        return None;
 
 
     def csvAdicc(self, fich):
         try:
             fd = open(fich, "r")
-            escribir = csv.writer(fd)
-            for url in diccionario:
-                key = url
-                valor = diccionario[key]
-                escribir.writerow([key] + [valor])
+            leido = csv.reader(fd)
+            for row in leido:
+                key = int(row[0]) # es el numero, la url acortada
+                if self.contador < key:
+                    self.contador = key
+                valor = row[1] #es la url real
+                self.urlsAcortadas[key] = valor
+                self.urlsReales[valor] = key
         except FileNotFoundError:
             print("Imposible abrir el diccionario")
 
-        return None;
+
 
 
     def parse(self, request):
@@ -47,10 +51,21 @@ class acortaURLs(webapp.webApp):
         		recurso = request.split()[1]
         except IndexError:
             recurso = ""
+
         try:
-            qs = request.split()[1][4:]
+            qs = request.split('\r\n\r\n', 1)[1]
         except IndexError:
             qs = ""
+        #try:
+        #    qs = request.split('url=')[1]
+        #except IndexError:
+        #    qs = ""
+        #try:
+        #    qs = request.split()[1:]
+        #except IndexError:
+        #    recurso = ""
+
+
 
         print ("El metodo es: " + str(metodo))
         print ("El recurso es: " + str(recurso))
@@ -59,7 +74,6 @@ class acortaURLs(webapp.webApp):
 
     def process(self, parsedRequest):
 
-        print(parsedRequest);
         metodo, recurso, qs = parsedRequest;
         try:
         		variable = int(recurso[1:])
@@ -67,7 +81,7 @@ class acortaURLs(webapp.webApp):
         		variable = ""
 
         print("METODO, RECURSO, QS, VARIABLE en el process: " + str(metodo) + str(recurso) + str(qs) + str(variable))
-        if metodo == GET:
+        if metodo == "GET":
             if recurso == '/':
                 #Si el diccionario está vacio y el fichero existe voy al diccionario
                 if len(self.urlsReales)== 0:
@@ -82,13 +96,14 @@ class acortaURLs(webapp.webApp):
                         for row in reader:
                             vacio = False
                         if not vacio: #si no esta vacio tengo que pasar el csv al diccionario
-                            serf.csvAdicc("urls.csv")
+                            self.csvAdicc("urls.csv")
                     return  ("200 OK", "<html><body>" \
                             + "<form method='POST' action>" \
                             + "URL: <input type='text' name='Url'><br>" \
                             + "<input type='submit' value='Enviar'>" \
                             + "</form><body></html>")
                 elif variable in self.urlsAcortadas:
+                    print("He entrado en este elif")
                     urlReal = self.urlsAcortadas[int(recurso[1:])]
                     urlAcortada = self.urlsReales[urlReal]
                     #Redirigo
@@ -98,14 +113,19 @@ class acortaURLs(webapp.webApp):
                 else:
                     return("404 Not Found", "<html><body><h1>Recurso no disponible</h1></body></html>")
 
-        elif parsedRequest[0] == POST:
+        elif parsedRequest[0] == "POST":
             if len(qs)== 0:
+                print("He entrado en el len qs=0")
                 return("405 Method Not Allowed", "<html><body><h1>Go away!</h1></body></html>")
             else:
-                if urllib.unquote(qs[0:13]) == "http://":
-                    urlReal = "http://" + qs[13:]
-                elif urllib.unquote(qs[0:14]) == "https://":
-                    urlReal = "https://" + qs[14:]
+                for i in parsedRequest:
+                    if i.startswith("url"):
+                        urlReal = i.split('=')[1]
+                        break
+                if urllib.parse.unquote(qs[0:7]) == "http://":
+                    urlReal = "http://" + qs[7:]
+                elif urllib.parse.unquote(qs[0:8]) == "https://":
+                    urlReal = "https://" + qs[8:]
                 else:
                     urlReal = "http://" + qs
 
@@ -120,8 +140,8 @@ class acortaURLs(webapp.webApp):
                     self.diccAcsv(self.urlsAcortadas)
 
                 return("200 OK", "<html><body>" + '<p><a href="' +
-                        str(url_acortada) + '">Esta es tu url acortada</a></p>' +
-                         '<p><a href=' + url_real + '/>' +
+                        str(urlAcortada) + '">Esta es tu url acortada</a></p>' +
+                         '<p><a href=' + urlReal + '/>' +
                          'Esta es tu url real</a></p>' +
                          "</body><html>")
         else:
