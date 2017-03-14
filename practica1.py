@@ -43,11 +43,8 @@ class acortaURLs(webapp.webApp):
 
     def parse(self, request):
         """Me tengo que quedar tanto con el metodo, como recurso como cuerpo """
-        #request = request.replace("%2F",'/').replace("%3A", ':')
-        #return request.split()
         print ("La request es: " + str(request))
         request = request.replace("%2F",'/').replace("%3A", ':')
-
 
         metodo = request.split()[0]
         try:
@@ -57,7 +54,7 @@ class acortaURLs(webapp.webApp):
 
         try:
             qs = request.split('\r\n\r\n', 1)[1]
-            if qs.startswith('Url='):
+            if qs.startswith('Url='): #de esta forma le quito el Url=
                 qs= qs.split('=')[1]
         except IndexError:
             qs = ""
@@ -93,21 +90,21 @@ class acortaURLs(webapp.webApp):
                             vacio = False
                         if not vacio: #si no esta vacio tengo que pasar el csv al diccionario
                             self.csvAdicc("urls.csv")
-                    return  ("200 OK", "<html><body>" \
-                            + "<form method='POST' action>" \
-                            + "URL: <input type='text' name='Url'><br>" \
-                            + "<input type='submit' value='Enviar'>" \
-                            + "</form><body></html>")
-                elif variable in self.urlsAcortadas:
-                    print("He entrado en redirigir")
-                    urlReal = self.urlsAcortadas[int(recurso[1:])]
-                    urlAcortada = self.urlsReales[urlReal]
-                    #Redirigo
-                    return("303 See other","<html><head>" +
-                            '<meta http-equiv="refresh" content="0;url=' +
-                            url_real + '" />' + "</head></html>")
-                else:
-                    return("404 Not Found", "<html><body><h1>Recurso no disponible</h1></body></html>")
+                    return  ("200 OK", "<html><body>" +
+                             "<form method='POST' action>" +
+                             "URL: <input type='text' name='Url'><br>" +
+                             "<input type='submit' value='Enviar'>" +
+                             "</form><body></html>")
+            elif variable in self.urlsAcortadas:
+                print("He entrado en redirigir")
+                urlReal = self.urlsAcortadas[int(recurso[1:])]
+                urlAcortada = self.urlsReales[urlReal]
+                #Redirigo
+                return("303 See other","<html><head>" +
+                        '<meta http-equiv="refresh" content="0;url=' +
+                        urlReal + '" />' + "</head></html>")
+            else:
+                return("404 Not Found", "<html><body><h1>Recurso no disponible</h1></body></html>")
 
         elif parsedRequest[0] == "POST":
             if len(qs)== 0:
@@ -117,10 +114,6 @@ class acortaURLs(webapp.webApp):
                 if (qs.startswith('http://') or qs.startswith('https://')):
                     print("HE ENTRADO EN EMPIEZA POR HTTP o HTTPS")
                     urlReal = qs
-                #if (urllib.parse.unquote(qs[0:7]) != "http://" and
-                        #urllib.parse.unquote(qs[0:8]) == "https://"):
-
-                    #urlReal = "http://" + qs
                 else:
                     print("HE ENTRADO EN NO EMPIEZA POR HTTP O HTTPS")
                     urlReal = "http://" + qs
@@ -138,9 +131,23 @@ class acortaURLs(webapp.webApp):
 
                 return("200 OK", "<html><body>" + '<p><a href="' +
                         str(urlAcortada) + '">Esta es tu url acortada</a></p>' +
-                         '<p><a href=' + urlReal + '/>' +
-                         'Esta es tu url real</a></p>' +
-                         "</body><html>")
+                         "http://localhost:1234/" + str(urlAcortada) +
+                         '<p><a href="' + urlReal + '">Esta es tu url real</a></p>' +
+                         urlReal +  "<form method='POST' action>" +
+                         "URL: <input type='text' name='Url'><br>" +
+                         "<input type='submit' value='Enviar'>" +
+                         "<body></html>")
+                #return("200 OK", "<html><body>" + '<p><a href="' +
+                #        str(urlAcortada) + '">Esta es tu url acortada</a></p>' +
+                #         '<p><a href=' + urlReal + '/>' +
+                #         'Esta es tu url real</a></p>' +
+                #         "<form method='POST' action>" +
+                #         "URL: <input type='text' name='Url'><br>" +
+                #         "<input type='submit' value='Enviar'>" +
+                #         "</form><h1>URLs reales disponibles: </h1>" +
+                #          urlReal+  "<h1>URLs acortadas disponibles: " +
+                #          ">http://localhost:1234/" + str(urlAcortada) +
+                #           "</h1><body></html>")
         else:
             return("405 Method Not Allowed", "<html><body><h1>Go away!</h1></body></html>")
 
