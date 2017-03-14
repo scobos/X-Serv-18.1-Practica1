@@ -46,6 +46,9 @@ class acortaURLs(webapp.webApp):
         #request = request.replace("%2F",'/').replace("%3A", ':')
         #return request.split()
         print ("La request es: " + str(request))
+        request = request.replace("%2F",'/').replace("%3A", ':')
+
+
         metodo = request.split()[0]
         try:
         		recurso = request.split()[1]
@@ -54,17 +57,10 @@ class acortaURLs(webapp.webApp):
 
         try:
             qs = request.split('\r\n\r\n', 1)[1]
+            if qs.startswith('Url='):
+                qs= qs.split('=')[1]
         except IndexError:
             qs = ""
-        #try:
-        #    qs = request.split('url=')[1]
-        #except IndexError:
-        #    qs = ""
-        #try:
-        #    qs = request.split()[1:]
-        #except IndexError:
-        #    recurso = ""
-
 
 
         print ("El metodo es: " + str(metodo))
@@ -103,7 +99,7 @@ class acortaURLs(webapp.webApp):
                             + "<input type='submit' value='Enviar'>" \
                             + "</form><body></html>")
                 elif variable in self.urlsAcortadas:
-                    print("He entrado en este elif")
+                    print("He entrado en redirigir")
                     urlReal = self.urlsAcortadas[int(recurso[1:])]
                     urlAcortada = self.urlsReales[urlReal]
                     #Redirigo
@@ -118,16 +114,17 @@ class acortaURLs(webapp.webApp):
                 print("He entrado en el len qs=0")
                 return("405 Method Not Allowed", "<html><body><h1>Go away!</h1></body></html>")
             else:
-                for i in parsedRequest:
-                    if i.startswith("url"):
-                        urlReal = i.split('=')[1]
-                        break
-                if urllib.parse.unquote(qs[0:7]) == "http://":
-                    urlReal = "http://" + qs[7:]
-                elif urllib.parse.unquote(qs[0:8]) == "https://":
-                    urlReal = "https://" + qs[8:]
+                if (qs.startswith('http://') or qs.startswith('https://')):
+                    print("HE ENTRADO EN EMPIEZA POR HTTP o HTTPS")
+                    urlReal = qs
+                #if (urllib.parse.unquote(qs[0:7]) != "http://" and
+                        #urllib.parse.unquote(qs[0:8]) == "https://"):
+
+                    #urlReal = "http://" + qs
                 else:
+                    print("HE ENTRADO EN NO EMPIEZA POR HTTP O HTTPS")
                     urlReal = "http://" + qs
+                    print("Se deberia añadir http a la url: "+ urlReal)
 
                 if urlReal in self.urlsReales: #si ya ha sido acortada
                     print(urlReal + " está en las URLs reales")
