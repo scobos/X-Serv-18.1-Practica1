@@ -23,7 +23,6 @@ class acortaURLs(webapp.webApp):
             print("Imposible abrir el diccionario")
         return None;
 
-
     def csvAdicc(self, fich):
         try:
             fd = open(fich, "r")
@@ -38,27 +37,20 @@ class acortaURLs(webapp.webApp):
         except FileNotFoundError:
             print("Imposible abrir el diccionario")
 
-
-
-
     def parse(self, request):
         """Me tengo que quedar tanto con el metodo, como recurso como cuerpo """
-        print ("La request es: " + str(request))
         request = request.replace("%2F",'/').replace("%3A", ':')
-
         metodo = request.split()[0]
         try:
         		recurso = request.split()[1]
         except IndexError:
             recurso = ""
-
         try:
             qs = request.split('\r\n\r\n', 1)[1]
             if qs.startswith('Url='): #de esta forma le quito el Url=
                 qs= qs.split('=')[1]
         except IndexError:
             qs = ""
-
 
         print ("El metodo es: " + str(metodo))
         print ("El recurso es: " + str(recurso))
@@ -72,7 +64,6 @@ class acortaURLs(webapp.webApp):
         		variable = int(recurso[1:])
         except ValueError:
         		variable = ""
-
         print("METODO, RECURSO, QS, VARIABLE en el process: " + str(metodo) + str(recurso) + str(qs) + str(variable))
         if metodo == "GET":
             if recurso == '/':
@@ -137,20 +128,9 @@ class acortaURLs(webapp.webApp):
                          "URL: <input type='text' name='Url'><br>" +
                          "<input type='submit' value='Enviar'>" +
                          "<body></html>")
-                #return("200 OK", "<html><body>" + '<p><a href="' +
-                #        str(urlAcortada) + '">Esta es tu url acortada</a></p>' +
-                #         '<p><a href=' + urlReal + '/>' +
-                #         'Esta es tu url real</a></p>' +
-                #         "<form method='POST' action>" +
-                #         "URL: <input type='text' name='Url'><br>" +
-                #         "<input type='submit' value='Enviar'>" +
-                #         "</form><h1>URLs reales disponibles: </h1>" +
-                #          urlReal+  "<h1>URLs acortadas disponibles: " +
-                #          ">http://localhost:1234/" + str(urlAcortada) +
-                #           "</h1><body></html>")
         else:
             return("405 Method Not Allowed", "<html><body><h1>Go away!</h1></body></html>")
 
 
 if __name__ == "__main__":
-    testWebApp = acortaURLs("localhost", 1234)
+    testWebApp = acortaURLs("localhost", 1234
